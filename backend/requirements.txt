@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+python-dotenv
+httpx
+requests
+aiofiles
+pillow
+python-multipart
