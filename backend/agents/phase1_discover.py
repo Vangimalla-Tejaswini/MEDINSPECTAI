@@ -52,7 +52,7 @@ async def search_regulatory_docs(market: str) -> list[dict]:
     queries = MARKET_QUERIES[market]
     trusted = TRUSTED_DOMAINS[market]
 
-    async with httpx.AsyncClient(timeout=15) as client:
+    async with httpx.AsyncClient(timeout=15, verify=False) as client:
         for query in queries:
             response = await client.get(
                 "https://serpapi.com/search",
