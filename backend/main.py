@@ -6,6 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from routes.rules import router as rules_router
+from routes.upload import router as upload_router
 import os
 
 load_dotenv()
@@ -24,6 +25,7 @@ app.add_middleware(
 )
 
 app.include_router(rules_router)
+app.include_router(upload_router)
 
 @app.get("/")
 def root():

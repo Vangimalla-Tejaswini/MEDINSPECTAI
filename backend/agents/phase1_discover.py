@@ -28,6 +28,10 @@ MARKET_QUERIES = {
         "Health Canada drug labelling packaging requirements 2024 2025",
         "Health Canada pharmaceutical labelling guidance site:canada.ca",
     ],
+    "Ireland": [
+    "Ireland pharmaceutical labelling packaging requirements HPRA 2024 2025",
+    "HPRA human medicines labelling packaging guidelines site:hpra.ie",
+],
 }
 
 # ── Trusted domains per market ───────────────────────────────────
@@ -37,6 +41,7 @@ TRUSTED_DOMAINS = {
     "India":     ["cdsco.gov.in", "mohfw.gov.in"],
     "Australia": ["tga.gov.au", "legislation.gov.au"],
     "Canada":    ["canada.ca", "healthcanada.gc.ca"],
+    "Ireland": ["hpra.ie", "gov.ie", "eur-lex.europa.eu", "ema.europa.eu"],
 }
 
 
