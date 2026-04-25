@@ -15,8 +15,8 @@ async def check_artwork(
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files supported")
 
-    supported = ["USA", "UK", "India", "Australia", "Canada"]
-    if market.upper() not in supported:
+    supported = ["USA", "UK", "India", "Australia", "Canada", "Ireland"]
+    if market.upper() not in [s.upper() for s in supported]:
         raise HTTPException(
             status_code=400,
             detail=f"Unsupported market. Choose from: {supported}"
