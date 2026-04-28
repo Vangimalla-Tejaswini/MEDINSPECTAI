@@ -1,0 +1,1019 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MedinspectAI — Packaging Compliance</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0a0c10;
+    --surface:   #111318;
+    --surface2:  #181c24;
+    --border:    #22283a;
+    --pass:      #00e5a0;
+    --fail:      #ff4566;
+    --cd:        #ffb830;
+    --accent:    #4f8eff;
+    --text:      #e8ecf4;
+    --muted:     #5a6482;
+    --pass-bg:   rgba(0,229,160,0.08);
+    --fail-bg:   rgba(255,69,102,0.08);
+    --cd-bg:     rgba(255,184,48,0.08);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Grid background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(79,142,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(79,142,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 32px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(10,12,16,0.9);
+    backdrop-filter: blur(12px);
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-icon {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), #7b4fff);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+  }
+
+  .logo-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo-text span { color: var(--accent); }
+
+  .header-badges {
+    display: flex;
+    gap: 8px;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+  }
+
+  /* ── UPLOAD PANEL ── */
+  .upload-panel {
+    position: relative;
+    z-index: 10;
+    padding: 24px 32px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .upload-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 6px;
+  }
+
+  .upload-group { display: flex; flex-direction: column; }
+
+  .file-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .file-btn {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .file-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  #file-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    color: var(--muted);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  select {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 160px;
+  }
+
+  select:hover, select:focus { border-color: var(--accent); }
+
+  .check-btn {
+    background: linear-gradient(135deg, var(--accent), #7b4fff);
+    border: none;
+    color: #fff;
+    padding: 10px 28px;
+    border-radius: 8px;
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    margin-top: auto;
+  }
+
+  .check-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(79,142,255,0.3); }
+  .check-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+  /* ── MAIN LAYOUT ── */
+  .main {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    height: calc(100vh - 130px);
+  }
+
+  /* ── PDF VIEWER ── */
+  .pdf-viewer {
+    position: relative;
+    overflow: auto;
+    background: #07090d;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px;
+  }
+
+  .pdf-container {
+    position: relative;
+    display: inline-block;
+  }
+
+  #pdf-canvas {
+    display: block;
+    border-radius: 4px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  #overlay-canvas {
+    position: absolute;
+    top: 0; left: 0;
+    pointer-events: all;
+    cursor: crosshair;
+    border-radius: 4px;
+  }
+
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    gap: 16px;
+    color: var(--muted);
+    width: 100%;
+  }
+
+  .empty-icon {
+    font-size: 64px;
+    opacity: 0.3;
+  }
+
+  .empty-text {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    opacity: 0.4;
+  }
+
+  /* ── RESULTS PANEL ── */
+  .results-panel {
+    border-left: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .results-header {
+    padding: 20px 20px 16px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .results-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 16px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .stat-card.pass { background: var(--pass-bg); border: 1px solid rgba(0,229,160,0.2); }
+  .stat-card.fail { background: var(--fail-bg); border: 1px solid rgba(255,69,102,0.2); }
+  .stat-card.cd   { background: var(--cd-bg);   border: 1px solid rgba(255,184,48,0.2); }
+
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .stat-card.pass .stat-num { color: var(--pass); }
+  .stat-card.fail .stat-num { color: var(--fail); }
+  .stat-card.cd   .stat-num { color: var(--cd);   }
+
+  .stat-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 4px;
+  }
+
+  .overall-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    font-weight: 500;
+    margin-top: 12px;
+  }
+
+  .overall-badge.pass { background: var(--pass-bg); color: var(--pass); border: 1px solid rgba(0,229,160,0.3); }
+  .overall-badge.fail { background: var(--fail-bg); color: var(--fail); border: 1px solid rgba(255,69,102,0.3); }
+
+  /* ── FILTER TABS ── */
+  .filter-tabs {
+    display: flex;
+    padding: 12px 20px;
+    gap: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    color: var(--muted);
+  }
+
+  .tab:hover { color: var(--text); border-color: var(--border); }
+  .tab.active-all  { background: var(--surface2); color: var(--text); border-color: var(--border); }
+  .tab.active-pass { background: var(--pass-bg); color: var(--pass); border-color: rgba(0,229,160,0.3); }
+  .tab.active-fail { background: var(--fail-bg); color: var(--fail); border-color: rgba(255,69,102,0.3); }
+  .tab.active-cd   { background: var(--cd-bg);   color: var(--cd);   border-color: rgba(255,184,48,0.3); }
+
+  /* ── VIOLATIONS LIST ── */
+  .violations-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+  }
+
+  .violations-list::-webkit-scrollbar { width: 4px; }
+  .violations-list::-webkit-scrollbar-track { background: transparent; }
+  .violations-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .violation-item {
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    background: var(--surface2);
+  }
+
+  .violation-item:hover { border-color: var(--border); transform: translateX(2px); }
+  .violation-item.selected { border-color: var(--accent); background: rgba(79,142,255,0.05); }
+
+  .violation-item.pass { border-left: 3px solid var(--pass); }
+  .violation-item.fail { border-left: 3px solid var(--fail); }
+  .violation-item.cd   { border-left: 3px solid var(--cd);   }
+
+  .vi-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+
+  .vi-rule {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .vi-status {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-weight: 500;
+  }
+
+  .vi-status.pass { background: var(--pass-bg); color: var(--pass); }
+  .vi-status.fail { background: var(--fail-bg); color: var(--fail); }
+  .vi-status.cd   { background: var(--cd-bg);   color: var(--cd);   }
+
+  .vi-field {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 3px;
+    text-transform: capitalize;
+  }
+
+  .vi-reason {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .vi-severity {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    border-top: 1px solid var(--border);
+    padding: 16px 20px;
+    background: var(--surface2);
+    max-height: 280px;
+    overflow-y: auto;
+    display: none;
+  }
+
+  .detail-panel.visible { display: block; }
+
+  .detail-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .detail-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 12px;
+  }
+
+  .detail-key {
+    font-family: 'DM Mono', monospace;
+    color: var(--muted);
+    min-width: 80px;
+    font-size: 11px;
+  }
+
+  .detail-val {
+    color: var(--text);
+    line-height: 1.5;
+    flex: 1;
+  }
+
+  .evidence-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    line-height: 1.6;
+    margin-top: 8px;
+  }
+
+  /* ── LOADING ── */
+  .loading-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10,12,16,0.9);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .loading-overlay.visible { display: flex; }
+
+  .spinner {
+    width: 48px; height: 48px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    color: var(--muted);
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    font-size: 13px;
+    z-index: 2000;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.3s;
+  }
+
+  .toast.show { transform: translateY(0); opacity: 1; }
+  .toast.error { border-color: var(--fail); color: var(--fail); }
+  .toast.success { border-color: var(--pass); color: var(--pass); }
+
+  input[type="file"] { display: none; }
+
+  .divider {
+    width: 1px;
+    height: 40px;
+    background: var(--border);
+    margin: 0 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<header>
+  <div class="logo">
+    <div class="logo-icon">🔬</div>
+    <div class="logo-text">Medinspect<span>AI</span></div>
+  </div>
+  <div class="header-badges">
+    <div class="badge">GPT-5.2 Vision</div>
+    <div class="badge">Azure AI Search</div>
+    <div class="badge">Doc Intelligence</div>
+  </div>
+</header>
+
+<!-- Upload Panel -->
+<div class="upload-panel">
+  <div class="upload-group">
+    <div class="upload-label">Artwork File</div>
+    <div class="file-input-wrapper">
+      <input type="file" id="pdf-input" accept=".pdf">
+      <button class="file-btn" onclick="document.getElementById('pdf-input').click()">
+        📄 Choose PDF
+      </button>
+      <span id="file-name">No file selected</span>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="upload-group">
+    <div class="upload-label">Market</div>
+    <select id="market-select">
+      <option value="">Select market...</option>
+      <option value="Ireland">🇮🇪 Ireland</option>
+      <option value="UK">🇬🇧 UK</option>
+      <option value="USA">🇺🇸 USA</option>
+      <option value="India">🇮🇳 India</option>
+      <option value="Australia">🇦🇺 Australia</option>
+      <option value="Canada">🇨🇦 Canada</option>
+    </select>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="upload-group">
+    <div class="upload-label">&nbsp;</div>
+    <button class="check-btn" id="check-btn" onclick="runCheck()">
+      ⚡ Run Compliance Check
+    </button>
+  </div>
+</div>
+
+<!-- Main Layout -->
+<div class="main">
+
+  <!-- PDF Viewer -->
+  <div class="pdf-viewer" id="pdf-viewer">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-text">Upload a packaging artwork PDF</div>
+      <div style="font-size:13px;color:var(--muted);margin-top:4px">
+        Select file + market → Run compliance check
+      </div>
+    </div>
+    <div class="pdf-container" id="pdf-container" style="display:none">
+      <canvas id="pdf-canvas"></canvas>
+      <canvas id="overlay-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Results Panel -->
+  <div class="results-panel">
+
+    <div class="results-header">
+      <div class="results-title">Compliance Results</div>
+      <div class="stats-grid" id="stats-grid" style="display:none">
+        <div class="stat-card pass">
+          <div class="stat-num" id="pass-count">0</div>
+          <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat-card fail">
+          <div class="stat-num" id="fail-count">0</div>
+          <div class="stat-label">Failed</div>
+        </div>
+        <div class="stat-card cd">
+          <div class="stat-num" id="cd-count">0</div>
+          <div class="stat-label">Unverified</div>
+        </div>
+      </div>
+      <div id="overall-badge" style="display:none"></div>
+    </div>
+
+    <div class="filter-tabs" id="filter-tabs" style="display:none">
+      <div class="tab active-all" onclick="filterViolations('all', this)">All</div>
+      <div class="tab" onclick="filterViolations('FAIL', this)">❌ Failed</div>
+      <div class="tab" onclick="filterViolations('PASS', this)">✅ Passed</div>
+      <div class="tab" onclick="filterViolations('CANNOT_DETERMINE', this)">⚠️ Unverified</div>
+    </div>
+
+    <div class="violations-list" id="violations-list">
+      <div style="text-align:center;color:var(--muted);font-size:13px;padding:40px 20px">
+        Run a compliance check to see results
+      </div>
+    </div>
+
+    <div class="detail-panel" id="detail-panel"></div>
+
+  </div>
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loading-text">Analyzing packaging artwork...</div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // PDF.js setup
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const API_BASE   = 'http://127.0.0.1:8000';
+  let allViolations = [];
+  let selectedItem  = null;
+  let pdfImageData  = null;
+
+  // File input handler
+  document.getElementById('pdf-input').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      document.getElementById('file-name').textContent = file.name;
+      renderPDF(file);
+    }
+  });
+
+  // Render PDF to canvas
+  async function renderPDF(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf         = await pdfjsLib.getDocument(arrayBuffer).promise;
+    const page        = await pdf.getPage(1);
+
+    const viewport  = page.getViewport({ scale: 1.5 });
+    const canvas    = document.getElementById('pdf-canvas');
+    const overlay   = document.getElementById('overlay-canvas');
+    const ctx       = canvas.getContext('2d');
+
+    canvas.width   = viewport.width;
+    canvas.height  = viewport.height;
+    overlay.width  = viewport.width;
+    overlay.height = viewport.height;
+
+    await page.render({ canvasContext: ctx, viewport }).promise;
+
+    // Save image data for later
+    pdfImageData = { width: viewport.width, height: viewport.height };
+
+    document.getElementById('empty-state').style.display    = 'none';
+    document.getElementById('pdf-container').style.display  = 'block';
+
+    // Overlay click handler
+    overlay.onclick = (e) => handleOverlayClick(e, overlay);
+  }
+
+  // Run compliance check
+  async function runCheck() {
+    const fileInput = document.getElementById('pdf-input');
+    const market    = document.getElementById('market-select').value;
+
+    if (!fileInput.files[0]) return showToast('Please select a PDF file', 'error');
+    if (!market)             return showToast('Please select a market', 'error');
+
+    showLoading(true, 'Extracting text from artwork...');
+    document.getElementById('check-btn').disabled = true;
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+    formData.append('market', market);
+
+    try {
+      // Animate loading messages
+      const messages = [
+        'Extracting text from artwork...',
+        'Loading regulatory rules from AI Search...',
+        'Converting PDF to high-res image...',
+        'GPT Vision analyzing packaging...',
+        'Checking each rule against artwork...',
+        'Generating compliance report...'
+      ];
+      let msgIdx = 0;
+      const msgInterval = setInterval(() => {
+        msgIdx = (msgIdx + 1) % messages.length;
+        document.getElementById('loading-text').textContent = messages[msgIdx];
+      }, 3000);
+
+      const response = await fetch(`${API_BASE}/check/artwork`, {
+        method: 'POST',
+        body:   formData
+      });
+
+      clearInterval(msgInterval);
+
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.detail || 'Check failed');
+      }
+
+      const data = await response.json();
+      showLoading(false);
+      displayResults(data);
+      showToast(`Check complete — ${data.failed} violations found`, data.failed > 0 ? 'error' : 'success');
+
+    } catch (err) {
+      showLoading(false);
+      showToast(err.message, 'error');
+    } finally {
+      document.getElementById('check-btn').disabled = false;
+    }
+  }
+
+  // Display results
+  function displayResults(data) {
+    allViolations = data.violations || [];
+
+    // Stats
+    const passed = data.passed || 0;
+    const failed = data.failed || 0;
+    const cd     = allViolations.filter(v => v.status === 'CANNOT_DETERMINE').length;
+
+    document.getElementById('pass-count').textContent = passed;
+    document.getElementById('fail-count').textContent = failed;
+    document.getElementById('cd-count').textContent   = cd;
+    document.getElementById('stats-grid').style.display = 'grid';
+    document.getElementById('filter-tabs').style.display = 'flex';
+
+    // Overall badge
+    const badge = document.getElementById('overall-badge');
+    badge.style.display = 'block';
+    badge.innerHTML = data.overall_status === 'PASS'
+      ? '<span class="overall-badge pass">✅ Overall: PASS</span>'
+      : '<span class="overall-badge fail">❌ Overall: FAIL — Critical violations found</span>';
+
+    // Draw overlay boxes
+    drawOverlay(allViolations);
+
+    // Render violations list
+    renderList(allViolations);
+  }
+
+  // Draw colored boxes on PDF
+  function drawOverlay(violations) {
+    if (!pdfImageData) return;
+
+    const overlay = document.getElementById('overlay-canvas');
+    const ctx     = overlay.getContext('2d');
+    const W       = pdfImageData.width;
+    const H       = pdfImageData.height;
+
+    ctx.clearRect(0, 0, W, H);
+
+    violations.forEach((v, idx) => {
+      const bbox = v.bbox;
+      if (!bbox || (bbox.width === 0 && bbox.height === 0)) return;
+
+      const x = (bbox.x / 100) * W;
+      const y = (bbox.y / 100) * H;
+      const w = (bbox.width  / 100) * W;
+      const h = (bbox.height / 100) * H;
+
+      let color, fillColor;
+      if (v.status === 'PASS') {
+        color     = '#00e5a0';
+        fillColor = 'rgba(0,229,160,0.06)';
+      } else if (v.status === 'FAIL') {
+        color     = '#ff4566';
+        fillColor = 'rgba(255,69,102,0.1)';
+      } else {
+        color     = '#ffb830';
+        fillColor = 'rgba(255,184,48,0.06)';
+      }
+
+      // Fill
+      ctx.fillStyle = fillColor;
+      ctx.fillRect(x, y, w, h);
+
+      // Border
+      ctx.strokeStyle = color;
+      ctx.lineWidth   = v.status === 'FAIL' ? 2.5 : 1.5;
+      ctx.strokeRect(x, y, w, h);
+
+      // Label chip
+      const chipText = v.status === 'FAIL' ? '❌' : v.status === 'PASS' ? '✅' : '⚠️';
+      ctx.fillStyle   = color;
+      ctx.font        = '10px DM Mono, monospace';
+      ctx.fillText(chipText, x + 3, y + 13);
+    });
+  }
+
+  // Handle overlay click
+  function handleOverlayClick(e, overlay) {
+    if (!pdfImageData) return;
+
+    const rect = overlay.getBoundingClientRect();
+    const clickX = ((e.clientX - rect.left) / rect.width)  * 100;
+    const clickY = ((e.clientY - rect.top)  / rect.height) * 100;
+
+    // Find which violation was clicked
+    const hit = allViolations.find(v => {
+      const b = v.bbox;
+      if (!b || (b.width === 0 && b.height === 0)) return false;
+      return clickX >= b.x && clickX <= b.x + b.width &&
+             clickY >= b.y && clickY <= b.y + b.height;
+    });
+
+    if (hit) showDetail(hit);
+  }
+
+  // Render violations list
+  function renderList(violations) {
+    const list = document.getElementById('violations-list');
+
+    if (!violations.length) {
+      list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px">No violations found</div>';
+      return;
+    }
+
+    list.innerHTML = violations.map((v, idx) => {
+      const cls = v.status === 'PASS' ? 'pass' : v.status === 'FAIL' ? 'fail' : 'cd';
+      const statusLabel = v.status === 'CANNOT_DETERMINE' ? 'UNVERIFIED' : v.status;
+      return `
+        <div class="violation-item ${cls}" onclick="selectViolation(${idx})" id="vi-${idx}">
+          <div class="vi-top">
+            <span class="vi-rule">${v.rule_id || 'N/A'}</span>
+            <span class="vi-status ${cls}">${statusLabel}</span>
+          </div>
+          <div class="vi-field">${(v.field || '').replace(/_/g,' ')}</div>
+          <div class="vi-reason">${v.reason || ''}</div>
+          <div class="vi-severity">⚡ ${v.severity || 'minor'}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // Select violation
+  function selectViolation(idx) {
+    const v = allViolations[idx];
+
+    // Highlight in list
+    document.querySelectorAll('.violation-item').forEach(el => el.classList.remove('selected'));
+    document.getElementById(`vi-${idx}`)?.classList.add('selected');
+
+    // Scroll into view
+    document.getElementById(`vi-${idx}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    // Show detail
+    showDetail(v);
+
+    // Highlight on canvas
+    highlightBox(v);
+  }
+
+  // Show detail panel
+  function showDetail(v) {
+    const panel = document.getElementById('detail-panel');
+    const cls   = v.status === 'PASS' ? 'pass' : v.status === 'FAIL' ? 'fail' : 'cd';
+    const statusLabel = v.status === 'CANNOT_DETERMINE' ? '⚠️ UNVERIFIED' : v.status === 'PASS' ? '✅ PASS' : '❌ FAIL';
+
+    panel.innerHTML = `
+      <div class="detail-title">
+        <span class="vi-status ${cls}" style="font-size:12px">${statusLabel}</span>
+        <span style="font-family:'Syne',sans-serif">${(v.field || '').replace(/_/g,' ')}</span>
+      </div>
+      <div class="detail-row">
+        <div class="detail-key">Rule ID</div>
+        <div class="detail-val" style="font-family:'DM Mono',monospace;color:var(--accent)">${v.rule_id || 'N/A'}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-key">Severity</div>
+        <div class="detail-val">${v.severity || 'N/A'}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-key">Location</div>
+        <div class="detail-val">${v.location_hint || 'N/A'}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-key">Reason</div>
+        <div class="detail-val">${v.reason || 'N/A'}</div>
+      </div>
+      ${v.evidence ? `
+      <div class="evidence-box">${v.evidence}</div>
+      ` : ''}
+    `;
+
+    panel.classList.add('visible');
+  }
+
+  // Highlight a specific box
+  function highlightBox(v) {
+    if (!pdfImageData || !v.bbox) return;
+
+    const overlay = document.getElementById('overlay-canvas');
+    const ctx     = overlay.getContext('2d');
+    const W       = pdfImageData.width;
+    const H       = pdfImageData.height;
+
+    // Redraw all
+    drawOverlay(allViolations);
+
+    // Pulse highlight
+    const bbox = v.bbox;
+    const x = (bbox.x / 100) * W;
+    const y = (bbox.y / 100) * H;
+    const w = (bbox.width  / 100) * W;
+    const h = (bbox.height / 100) * H;
+
+    ctx.strokeStyle = '#4f8eff';
+    ctx.lineWidth   = 3;
+    ctx.setLineDash([6, 3]);
+    ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
+    ctx.setLineDash([]);
+  }
+
+  // Filter violations
+  function filterViolations(status, tabEl) {
+    document.querySelectorAll('.tab').forEach(t => {
+      t.className = 'tab';
+    });
+
+    if (status === 'all') {
+      tabEl.classList.add('active-all');
+      renderList(allViolations);
+    } else if (status === 'PASS') {
+      tabEl.classList.add('active-pass');
+      renderList(allViolations.filter(v => v.status === 'PASS'));
+    } else if (status === 'FAIL') {
+      tabEl.classList.add('active-fail');
+      renderList(allViolations.filter(v => v.status === 'FAIL'));
+    } else {
+      tabEl.classList.add('active-cd');
+      renderList(allViolations.filter(v => v.status === 'CANNOT_DETERMINE'));
+    }
+
+    // Redraw overlay for filtered items
+    const filtered = status === 'all'
+      ? allViolations
+      : allViolations.filter(v =>
+          status === 'CANNOT_DETERMINE' ? v.status === 'CANNOT_DETERMINE' : v.status === status
+        );
+    drawOverlay(filtered);
+  }
+
+  // Loading
+  function showLoading(show, text) {
+    const el = document.getElementById('loading');
+    if (show) {
+      document.getElementById('loading-text').textContent = text || 'Analyzing...';
+      el.classList.add('visible');
+    } else {
+      el.classList.remove('visible');
+    }
+  }
+
+  // Toast
+  function showToast(msg, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent  = msg;
+    toast.className    = `toast ${type} show`;
+    setTimeout(() => toast.classList.remove('show'), 3000);
+  }
+</script>
+</body>
+</html>
+```
