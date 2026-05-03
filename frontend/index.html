@@ -3,577 +3,216 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MedinspectAI — Packaging Compliance</title>
+<title>MedinspectAI</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg:        #0a0c10;
-    --surface:   #111318;
-    --surface2:  #181c24;
-    --border:    #22283a;
-    --pass:      #00e5a0;
-    --fail:      #ff4566;
-    --cd:        #ffb830;
-    --accent:    #4f8eff;
-    --text:      #e8ecf4;
-    --muted:     #5a6482;
-    --pass-bg:   rgba(0,229,160,0.08);
-    --fail-bg:   rgba(255,69,102,0.08);
-    --cd-bg:     rgba(255,184,48,0.08);
-  }
-
-  * { margin:0; padding:0; box-sizing:border-box; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    overflow-x: hidden;
-  }
-
-  /* Grid background */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(79,142,255,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(79,142,255,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  /* ── HEADER ── */
-  header {
-    position: relative;
-    z-index: 10;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 18px 32px;
-    border-bottom: 1px solid var(--border);
-    background: rgba(10,12,16,0.9);
-    backdrop-filter: blur(12px);
-  }
-
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .logo-icon {
-    width: 36px; height: 36px;
-    background: linear-gradient(135deg, var(--accent), #7b4fff);
-    border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-  }
-
-  .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-size: 20px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-  }
-
-  .logo-text span { color: var(--accent); }
-
-  .header-badges {
-    display: flex;
-    gap: 8px;
-  }
-
-  .badge {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    border: 1px solid var(--border);
-    color: var(--muted);
-  }
-
-  /* ── UPLOAD PANEL ── */
-  .upload-panel {
-    position: relative;
-    z-index: 10;
-    padding: 24px 32px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-
-  .upload-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 6px;
-  }
-
-  .upload-group { display: flex; flex-direction: column; }
-
-  .file-input-wrapper {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .file-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap;
-  }
-
-  .file-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  #file-name {
-    font-family: 'DM Mono', monospace;
-    font-size: 12px;
-    color: var(--muted);
-    max-width: 200px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  select {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px 16px;
-    border-radius: 8px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    cursor: pointer;
-    outline: none;
-    transition: border-color 0.2s;
-    min-width: 160px;
-  }
-
-  select:hover, select:focus { border-color: var(--accent); }
-
-  .check-btn {
-    background: linear-gradient(135deg, var(--accent), #7b4fff);
-    border: none;
-    color: #fff;
-    padding: 10px 28px;
-    border-radius: 8px;
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
-    margin-top: auto;
-  }
-
-  .check-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(79,142,255,0.3); }
-  .check-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  /* ── MAIN LAYOUT ── */
-  .main {
-    position: relative;
-    z-index: 10;
-    display: grid;
-    grid-template-columns: 1fr 380px;
-    height: calc(100vh - 130px);
-  }
-
-  /* ── PDF VIEWER ── */
-  .pdf-viewer {
-    position: relative;
-    overflow: auto;
-    background: #07090d;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 32px;
-  }
-
-  .pdf-container {
-    position: relative;
-    display: inline-block;
-  }
-
-  #pdf-canvas {
-    display: block;
-    border-radius: 4px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-  }
-
-  #overlay-canvas {
-    position: absolute;
-    top: 0; left: 0;
-    pointer-events: all;
-    cursor: crosshair;
-    border-radius: 4px;
-  }
-
-  .empty-state {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    gap: 16px;
-    color: var(--muted);
-    width: 100%;
-  }
-
-  .empty-icon {
-    font-size: 64px;
-    opacity: 0.3;
-  }
-
-  .empty-text {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px;
-    font-weight: 600;
-    opacity: 0.4;
-  }
-
-  /* ── RESULTS PANEL ── */
-  .results-panel {
-    border-left: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .results-header {
-    padding: 20px 20px 16px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .results-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
-
-  .stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 8px;
-  }
-
-  .stat-card {
-    padding: 12px;
-    border-radius: 8px;
-    text-align: center;
-  }
-
-  .stat-card.pass { background: var(--pass-bg); border: 1px solid rgba(0,229,160,0.2); }
-  .stat-card.fail { background: var(--fail-bg); border: 1px solid rgba(255,69,102,0.2); }
-  .stat-card.cd   { background: var(--cd-bg);   border: 1px solid rgba(255,184,48,0.2); }
-
-  .stat-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 28px;
-    font-weight: 800;
-    line-height: 1;
-  }
-
-  .stat-card.pass .stat-num { color: var(--pass); }
-  .stat-card.fail .stat-num { color: var(--fail); }
-  .stat-card.cd   .stat-num { color: var(--cd);   }
-
-  .stat-label {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-top: 4px;
-  }
-
-  .overall-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    font-weight: 500;
-    margin-top: 12px;
-  }
-
-  .overall-badge.pass { background: var(--pass-bg); color: var(--pass); border: 1px solid rgba(0,229,160,0.3); }
-  .overall-badge.fail { background: var(--fail-bg); color: var(--fail); border: 1px solid rgba(255,69,102,0.3); }
-
-  /* ── FILTER TABS ── */
-  .filter-tabs {
-    display: flex;
-    padding: 12px 20px;
-    gap: 6px;
-    border-bottom: 1px solid var(--border);
-  }
-
-  .tab {
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.15s;
-    color: var(--muted);
-  }
-
-  .tab:hover { color: var(--text); border-color: var(--border); }
-  .tab.active-all  { background: var(--surface2); color: var(--text); border-color: var(--border); }
-  .tab.active-pass { background: var(--pass-bg); color: var(--pass); border-color: rgba(0,229,160,0.3); }
-  .tab.active-fail { background: var(--fail-bg); color: var(--fail); border-color: rgba(255,69,102,0.3); }
-  .tab.active-cd   { background: var(--cd-bg);   color: var(--cd);   border-color: rgba(255,184,48,0.3); }
-
-  /* ── VIOLATIONS LIST ── */
-  .violations-list {
-    flex: 1;
-    overflow-y: auto;
-    padding: 12px;
-  }
-
-  .violations-list::-webkit-scrollbar { width: 4px; }
-  .violations-list::-webkit-scrollbar-track { background: transparent; }
-  .violations-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .violation-item {
-    padding: 12px;
-    border-radius: 8px;
-    margin-bottom: 6px;
-    cursor: pointer;
-    border: 1px solid transparent;
-    transition: all 0.15s;
-    background: var(--surface2);
-  }
-
-  .violation-item:hover { border-color: var(--border); transform: translateX(2px); }
-  .violation-item.selected { border-color: var(--accent); background: rgba(79,142,255,0.05); }
-
-  .violation-item.pass { border-left: 3px solid var(--pass); }
-  .violation-item.fail { border-left: 3px solid var(--fail); }
-  .violation-item.cd   { border-left: 3px solid var(--cd);   }
-
-  .vi-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 4px;
-  }
-
-  .vi-rule {
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
-  }
-
-  .vi-status {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    padding: 2px 8px;
-    border-radius: 10px;
-    font-weight: 500;
-  }
-
-  .vi-status.pass { background: var(--pass-bg); color: var(--pass); }
-  .vi-status.fail { background: var(--fail-bg); color: var(--fail); }
-  .vi-status.cd   { background: var(--cd-bg);   color: var(--cd);   }
-
-  .vi-field {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--text);
-    margin-bottom: 3px;
-    text-transform: capitalize;
-  }
-
-  .vi-reason {
-    font-size: 11px;
-    color: var(--muted);
-    line-height: 1.4;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  .vi-severity {
-    font-family: 'DM Mono', monospace;
-    font-size: 10px;
-    color: var(--muted);
-    margin-top: 4px;
-  }
-
-  /* ── DETAIL PANEL ── */
-  .detail-panel {
-    border-top: 1px solid var(--border);
-    padding: 16px 20px;
-    background: var(--surface2);
-    max-height: 280px;
-    overflow-y: auto;
-    display: none;
-  }
-
-  .detail-panel.visible { display: block; }
-
-  .detail-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    margin-bottom: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .detail-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-    font-size: 12px;
-  }
-
-  .detail-key {
-    font-family: 'DM Mono', monospace;
-    color: var(--muted);
-    min-width: 80px;
-    font-size: 11px;
-  }
-
-  .detail-val {
-    color: var(--text);
-    line-height: 1.5;
-    flex: 1;
-  }
-
-  .evidence-box {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 10px 12px;
-    font-family: 'DM Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    line-height: 1.6;
-    margin-top: 8px;
-  }
-
-  /* ── LOADING ── */
-  .loading-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(10,12,16,0.9);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    flex-direction: column;
-    gap: 20px;
-  }
-
-  .loading-overlay.visible { display: flex; }
-
-  .spinner {
-    width: 48px; height: 48px;
-    border: 3px solid var(--border);
-    border-top-color: var(--accent);
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-  }
-
-  @keyframes spin { to { transform: rotate(360deg); } }
-
-  .loading-text {
-    font-family: 'DM Mono', monospace;
-    font-size: 13px;
-    color: var(--muted);
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  @keyframes pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
-
-  /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    right: 24px;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 13px;
-    z-index: 2000;
-    transform: translateY(100px);
-    opacity: 0;
-    transition: all 0.3s;
-  }
-
-  .toast.show { transform: translateY(0); opacity: 1; }
-  .toast.error { border-color: var(--fail); color: var(--fail); }
-  .toast.success { border-color: var(--pass); color: var(--pass); }
-
-  input[type="file"] { display: none; }
-
-  .divider {
-    width: 1px;
-    height: 40px;
-    background: var(--border);
-    margin: 0 8px;
-  }
+* { margin:0; padding:0; box-sizing:border-box; }
+:root {
+  --bg:#080b12; --s1:#0e1220; --s2:#131929; --s3:#1a2235;
+  --border:#1e2d47; --border2:#253350;
+  --pass:#05d98a; --fail:#ff3b5c; --cd:#f5a623; --accent:#3d7eff; --purple:#7c5cfc;
+  --text:#dde4f0; --muted:#4a5d7a; --muted2:#6b7fa0;
+  --pass-bg:rgba(5,217,138,0.07); --fail-bg:rgba(255,59,92,0.07); --cd-bg:rgba(245,166,35,0.07);
+}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Space Grotesk',sans-serif;display:flex;flex-direction:column;}
+
+/* HEADER */
+.hdr{flex-shrink:0;display:flex;align-items:center;padding:0 20px;height:54px;background:var(--s1);border-bottom:1px solid var(--border);gap:16px;z-index:100;}
+.logo{display:flex;align-items:center;gap:10px;margin-right:4px;}
+.logo-mark{width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.logo-name{font-size:17px;font-weight:700;letter-spacing:-0.3px;white-space:nowrap;}
+.logo-name em{color:var(--accent);font-style:normal;}
+.hsep{width:1px;height:28px;background:var(--border);flex-shrink:0;}
+.cg{display:flex;flex-direction:column;gap:3px;}
+.cl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.fr{display:flex;align-items:center;gap:8px;}
+.fbtn{background:var(--s3);border:1px solid var(--border2);color:var(--text);padding:5px 12px;border-radius:6px;font-family:'Space Grotesk',sans-serif;font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.fbtn:hover{border-color:var(--accent);color:var(--accent);}
+#fn{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+select{background:var(--s3);border:1px solid var(--border2);color:var(--text);padding:5px 10px;border-radius:6px;font-family:'Space Grotesk',sans-serif;font-size:12px;cursor:pointer;outline:none;min-width:150px;}
+select:focus{border-color:var(--accent);}
+.cbtn{background:linear-gradient(135deg,var(--accent),var(--purple));border:none;color:#fff;padding:7px 20px;border-radius:7px;font-family:'Space Grotesk',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+.cbtn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(61,126,255,.35);}
+.cbtn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.hright{margin-left:auto;display:flex;gap:6px;}
+.tpill{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);padding:3px 8px;border:1px solid var(--border);border-radius:10px;}
+input[type=file]{display:none;}
+
+/* WORKSPACE */
+.ws{flex:1;display:flex;overflow:hidden;}
+
+/* PDF PANEL */
+.ppanel{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#060911;min-width:280px;}
+
+.ptbar{flex-shrink:0;display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--s1);border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.zbtn{width:26px;height:26px;background:var(--s3);border:1px solid var(--border2);color:var(--text);border-radius:5px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0;}
+.zbtn:hover{border-color:var(--accent);color:var(--accent);}
+#zlvl{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);min-width:36px;text-align:center;}
+.tsep{width:1px;height:18px;background:var(--border);flex-shrink:0;}
+.ovbtns{display:flex;gap:3px;}
+.ovb{padding:3px 9px;border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:10px;cursor:pointer;border:1px solid var(--border);color:var(--muted2);background:transparent;transition:all .15s;}
+.ovb:hover{color:var(--text);border-color:var(--border2);}
+.ovb.on-fail{background:var(--fail-bg);color:var(--fail);border-color:rgba(255,59,92,.3);}
+.ovb.on-pass{background:var(--pass-bg);color:var(--pass);border-color:rgba(5,217,138,.3);}
+.ovb.on-cd{background:var(--cd-bg);color:var(--cd);border-color:rgba(245,166,35,.3);}
+.ovb.on-all{background:var(--s3);color:var(--text);border-color:var(--border2);}
+.navbtns{display:flex;gap:4px;margin-left:auto;align-items:center;}
+.navb{padding:3px 10px;border-radius:5px;font-size:11px;cursor:pointer;border:1px solid var(--border);color:var(--muted2);background:var(--s3);transition:all .15s;font-family:'Space Grotesk',sans-serif;}
+.navb:hover{border-color:var(--accent);color:var(--accent);}
+.navb:disabled{opacity:.3;cursor:not-allowed;}
+#navctr{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);min-width:48px;text-align:center;}
+
+/* LEGEND BAR */
+.legend-bar{flex-shrink:0;padding:6px 14px;background:var(--s2);border-bottom:1px solid var(--border);display:none;align-items:center;gap:18px;flex-wrap:wrap;}
+.legend-bar.show{display:flex;}
+.leg-title{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
+.leg-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2);}
+.leg-box{width:14px;height:14px;border-radius:3px;border:1.5px solid;flex-shrink:0;}
+.leg-box.fail{background:rgba(255,59,92,0.15);border-color:var(--fail);}
+.leg-box.pass{background:rgba(5,217,138,0.12);border-color:var(--pass);}
+.leg-box.cd{background:rgba(245,166,35,0.12);border-color:var(--cd);}
+.leg-hint{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted);font-style:italic;}
+
+.pscroll{flex:1;overflow:auto;display:flex;align-items:flex-start;justify-content:center;padding:24px;position:relative;}
+.pscroll::-webkit-scrollbar{width:5px;height:5px;}
+.pscroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
+.pwrap{position:relative;display:inline-block;}
+#pcanvas{display:block;border-radius:3px;box-shadow:0 0 0 1px var(--border),0 24px 80px rgba(0,0,0,.6);}
+#osvg{position:absolute;top:0;left:0;pointer-events:all;cursor:default;border-radius:3px;}
+
+.empty-pdf{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty-pdf .ei{font-size:52px;opacity:.2;}
+.empty-pdf .et{font-size:16px;font-weight:600;opacity:.3;}
+.empty-pdf .es{font-size:12px;opacity:.2;}
+
+/* RESIZER */
+.rz{width:4px;background:var(--border);cursor:col-resize;flex-shrink:0;transition:background .15s;z-index:10;}
+.rz:hover,.rz.dragging{background:var(--accent);}
+
+/* RESULTS PANEL */
+.rpanel{width:360px;min-width:240px;max-width:540px;display:flex;flex-direction:column;background:var(--s1);border-left:1px solid var(--border);overflow:hidden;flex-shrink:0;}
+
+.sbar{flex-shrink:0;padding:14px 16px 12px;border-bottom:1px solid var(--border);}
+.stitle{font-size:10px;font-weight:600;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.srow{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;}
+.sc{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 6px;text-align:center;cursor:pointer;transition:all .15s;position:relative;}
+.sc:hover{transform:translateY(-1px);}
+.sc::after{content:'click to filter';position:absolute;bottom:-18px;left:50%;transform:translateX(-50%);font-size:9px;color:var(--muted);white-space:nowrap;opacity:0;transition:opacity .15s;}
+.sc:hover::after{opacity:1;}
+.sc.pass{border-color:rgba(5,217,138,.2);}
+.sc.fail{border-color:rgba(255,59,92,.2);}
+.sc.cd{border-color:rgba(245,166,35,.2);}
+.sc.af{background:var(--fail-bg);border-color:rgba(255,59,92,.4);}
+.sc.ap{background:var(--pass-bg);border-color:rgba(5,217,138,.4);}
+.sc.ac{background:var(--cd-bg);border-color:rgba(245,166,35,.4);}
+.sn{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;line-height:1;margin-bottom:3px;}
+.sc.pass .sn{color:var(--pass);}
+.sc.fail .sn{color:var(--fail);}
+.sc.cd .sn{color:var(--cd);}
+.sl{font-size:9px;color:var(--muted2);font-weight:500;text-transform:uppercase;letter-spacing:.5px;}
+.orow{display:flex;align-items:center;justify-content:space-between;margin-top:4px;}
+.opill{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;}
+.opill.pass{background:var(--pass-bg);color:var(--pass);border:1px solid rgba(5,217,138,.25);}
+.opill.fail{background:var(--fail-bg);color:var(--fail);border:1px solid rgba(255,59,92,.25);}
+.allb{font-size:11px;color:var(--muted2);background:none;border:none;cursor:pointer;font-family:'Space Grotesk',sans-serif;text-decoration:underline;text-underline-offset:3px;}
+.allb:hover{color:var(--text);}
+
+.vlist{flex:1;overflow-y:auto;padding:10px;}
+.vlist::-webkit-scrollbar{width:4px;}
+.vlist::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+
+.vi{background:var(--s2);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:all .15s;overflow:hidden;}
+.vi:hover{border-color:var(--border2);transform:translateX(2px);}
+.vi.active{border-color:var(--accent);background:rgba(61,126,255,.05);}
+.vitop{display:flex;align-items:stretch;}
+.vistr{width:3px;flex-shrink:0;}
+.vi.pass .vistr{background:var(--pass);}
+.vi.fail .vistr{background:var(--fail);}
+.vi.cd .vistr{background:var(--cd);}
+.vibody{padding:10px 12px;flex:1;min-width:0;}
+.vihdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;gap:6px;}
+.virule{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted2);flex-shrink:0;}
+.vibadge{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:500;padding:2px 7px;border-radius:8px;flex-shrink:0;}
+.vibadge.pass{background:var(--pass-bg);color:var(--pass);}
+.vibadge.fail{background:var(--fail-bg);color:var(--fail);}
+.vibadge.cd{background:var(--cd-bg);color:var(--cd);}
+.vifield{font-size:13px;font-weight:600;color:var(--text);text-transform:capitalize;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vireason{font-size:11px;color:var(--muted2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.vimeta{margin-top:4px;font-size:10px;color:var(--muted2);display:flex;align-items:center;gap:4px;}
+.sdot{display:inline-block;width:5px;height:5px;border-radius:50%;}
+.sdot.critical{background:var(--fail);}
+.sdot.major{background:var(--cd);}
+.sdot.minor{background:var(--muted2);}
+
+/* DETAIL DRAWER */
+.dd{flex-shrink:0;border-top:1px solid var(--border);background:var(--s2);max-height:0;overflow:hidden;transition:max-height .3s ease;}
+.dd.open{max-height:300px;overflow-y:auto;}
+.dd::-webkit-scrollbar{width:4px;}
+.dd::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.ddi{padding:14px 16px;}
+.ddhdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.ddtrow{display:flex;align-items:center;gap:8px;}
+.ddclose{width:22px;height:22px;background:var(--s3);border:1px solid var(--border);border-radius:5px;cursor:pointer;color:var(--muted2);font-size:12px;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.ddclose:hover{border-color:var(--fail);color:var(--fail);}
+.ddfield{font-size:14px;font-weight:700;text-transform:capitalize;}
+.ddgrid{display:grid;grid-template-columns:76px 1fr;gap:5px 10px;margin-bottom:10px;}
+.dk{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;padding-top:1px;}
+.dv{font-size:12px;color:var(--text);line-height:1.5;}
+.dv.mono{font-family:'JetBrains Mono',monospace;color:var(--accent);font-size:11px;}
+.evc{background:var(--bg);border:1px solid var(--border);border-left:2px solid var(--accent);border-radius:6px;padding:10px 12px;margin-top:6px;}
+.evl{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--accent);text-transform:uppercase;letter-spacing:1px;margin-bottom:5px;}
+.evt{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted2);line-height:1.6;}
+
+/* LOADING */
+.lveil{position:fixed;inset:0;background:rgba(8,11,18,.93);display:none;align-items:center;justify-content:center;flex-direction:column;gap:18px;z-index:500;backdrop-filter:blur(4px);}
+.lveil.show{display:flex;}
+.sring{width:50px;height:50px;border:2px solid var(--border2);border-top-color:var(--accent);border-right-color:var(--purple);border-radius:50%;animation:spin .9s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.lmsg{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted2);animation:blink 1.4s ease-in-out infinite;max-width:280px;text-align:center;}
+@keyframes blink{0%,100%{opacity:.4}50%{opacity:1}}
+.lprog{width:220px;height:2px;background:var(--border2);border-radius:1px;overflow:hidden;}
+.lbar{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:1px;width:0%;transition:width 1s ease;}
+.lsteps{display:flex;flex-direction:column;gap:6px;margin-top:4px;}
+.lstep{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);display:flex;align-items:center;gap:8px;}
+.lstep.done{color:var(--pass);}
+.lstep.active{color:var(--accent);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--s2);border:1px solid var(--border2);border-radius:8px;padding:10px 16px;font-size:13px;z-index:600;transform:translateY(80px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);max-width:320px;line-height:1.4;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.err{border-color:var(--fail);color:var(--fail);}
+.toast.ok{border-color:var(--pass);color:var(--pass);}
+.toast.info{border-color:var(--accent);color:var(--accent);}
+.emptylist{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;}
+
+/* SVG box pulse animation */
+@keyframes pulse-stroke{0%,100%{opacity:1}50%{opacity:.5}}
+.pulsing{animation:pulse-stroke .8s ease-in-out infinite;}
 </style>
 </head>
 <body>
 
-<!-- Header -->
-<header>
+<!-- HEADER -->
+<div class="hdr">
   <div class="logo">
-    <div class="logo-icon">🔬</div>
-    <div class="logo-text">Medinspect<span>AI</span></div>
+    <div class="logo-mark">🔬</div>
+    <div class="logo-name">Medinspect<em>AI</em></div>
   </div>
-  <div class="header-badges">
-    <div class="badge">GPT-5.2 Vision</div>
-    <div class="badge">Azure AI Search</div>
-    <div class="badge">Doc Intelligence</div>
-  </div>
-</header>
-
-<!-- Upload Panel -->
-<div class="upload-panel">
-  <div class="upload-group">
-    <div class="upload-label">Artwork File</div>
-    <div class="file-input-wrapper">
+  <div class="hsep"></div>
+  <div class="cg">
+    <div class="cl">Artwork PDF</div>
+    <div class="fr">
       <input type="file" id="pdf-input" accept=".pdf">
-      <button class="file-btn" onclick="document.getElementById('pdf-input').click()">
-        📄 Choose PDF
-      </button>
-      <span id="file-name">No file selected</span>
+      <button class="fbtn" onclick="document.getElementById('pdf-input').click()">📄 Choose PDF</button>
+      <span id="fn">No file selected</span>
     </div>
   </div>
-
-  <div class="divider"></div>
-
-  <div class="upload-group">
-    <div class="upload-label">Market</div>
-    <select id="market-select">
+  <div class="hsep"></div>
+  <div class="cg">
+    <div class="cl">Regulatory Market</div>
+    <select id="mkt">
       <option value="">Select market...</option>
       <option value="Ireland">🇮🇪 Ireland</option>
       <option value="UK">🇬🇧 UK</option>
@@ -583,437 +222,517 @@
       <option value="Canada">🇨🇦 Canada</option>
     </select>
   </div>
-
-  <div class="divider"></div>
-
-  <div class="upload-group">
-    <div class="upload-label">&nbsp;</div>
-    <button class="check-btn" id="check-btn" onclick="runCheck()">
-      ⚡ Run Compliance Check
-    </button>
+  <div class="hsep"></div>
+  <button class="cbtn" id="cbtn" onclick="runCheck()">⚡ Run Compliance Check</button>
+  <div class="hright">
+    <div class="tpill">GPT-5.2 Vision</div>
+    <div class="tpill">Azure AI Search</div>
+    <div class="tpill">Doc Intelligence</div>
   </div>
 </div>
 
-<!-- Main Layout -->
-<div class="main">
+<!-- WORKSPACE -->
+<div class="ws">
 
-  <!-- PDF Viewer -->
-  <div class="pdf-viewer" id="pdf-viewer">
-    <div class="empty-state" id="empty-state">
-      <div class="empty-icon">📋</div>
-      <div class="empty-text">Upload a packaging artwork PDF</div>
-      <div style="font-size:13px;color:var(--muted);margin-top:4px">
-        Select file + market → Run compliance check
+  <!-- PDF PANEL -->
+  <div class="ppanel" id="ppanel">
+
+    <!-- Toolbar -->
+    <div class="ptbar">
+      <button class="zbtn" onclick="zoom(-0.25)" title="Zoom out">−</button>
+      <span id="zlvl">100%</span>
+      <button class="zbtn" onclick="zoom(.25)" title="Zoom in">+</button>
+      <button class="zbtn" onclick="resetZoom()" title="Fit to screen" style="font-size:11px;width:auto;padding:0 8px">Fit</button>
+      <div class="tsep"></div>
+      <div class="ovbtns">
+        <button class="ovb" id="ov-all"  onclick="setOv('all',this)">All</button>
+        <button class="ovb on-fail" id="ov-fail" onclick="setOv('fail',this)">❌ Failures</button>
+        <button class="ovb" id="ov-cd"   onclick="setOv('cd',this)">⚠️ Unverified</button>
+        <button class="ovb" id="ov-pass" onclick="setOv('pass',this)">✅ Passed</button>
+        <button class="ovb" id="ov-none" onclick="setOv('none',this)">Hide All</button>
+      </div>
+      <div class="navbtns">
+        <button class="navb" id="nprev" onclick="navBox(-1)" disabled>← Prev</button>
+        <span id="navctr" style="display:none">—</span>
+        <button class="navb" id="nnext" onclick="navBox(1)" disabled>Next →</button>
       </div>
     </div>
-    <div class="pdf-container" id="pdf-container" style="display:none">
-      <canvas id="pdf-canvas"></canvas>
-      <canvas id="overlay-canvas"></canvas>
+
+    <!-- Legend Bar -->
+    <div class="legend-bar" id="legend-bar">
+      <span class="leg-title">Legend</span>
+      <div class="leg-item"><div class="leg-box fail"></div><span><strong style="color:var(--fail)">Violation</strong> — rule not met</span></div>
+      <div class="leg-item"><div class="leg-box pass"></div><span><strong style="color:var(--pass)">Compliant</strong> — rule satisfied</span></div>
+      <div class="leg-item"><div class="leg-box cd"></div><span><strong style="color:var(--cd)">Unverified</strong> — needs additional document</span></div>
+      <span class="leg-hint">💡 Click any highlighted box on the PDF for details</span>
+    </div>
+
+    <!-- PDF Scroll Area -->
+    <div class="pscroll" id="pscroll">
+      <div class="empty-pdf" id="epdf">
+        <div class="ei">📋</div>
+        <div class="et">Upload packaging artwork PDF</div>
+        <div class="es">Choose PDF + select market → Run compliance check</div>
+      </div>
+      <div class="pwrap" id="pwrap" style="display:none">
+        <canvas id="pcanvas"></canvas>
+        <svg id="osvg" xmlns="http://www.w3.org/2000/svg"></svg>
+      </div>
     </div>
   </div>
 
-  <!-- Results Panel -->
-  <div class="results-panel">
+  <!-- RESIZER -->
+  <div class="rz" id="rz"></div>
 
-    <div class="results-header">
-      <div class="results-title">Compliance Results</div>
-      <div class="stats-grid" id="stats-grid" style="display:none">
-        <div class="stat-card pass">
-          <div class="stat-num" id="pass-count">0</div>
-          <div class="stat-label">Passed</div>
+  <!-- RESULTS PANEL -->
+  <div class="rpanel" id="rpanel">
+
+    <div class="sbar">
+      <div class="stitle">Compliance Results</div>
+      <div class="srow">
+        <div class="sc pass" id="sc-pass" onclick="filterList('PASS')" title="Click to show passed rules">
+          <div class="sn" id="np">—</div>
+          <div class="sl">✅ Passed</div>
         </div>
-        <div class="stat-card fail">
-          <div class="stat-num" id="fail-count">0</div>
-          <div class="stat-label">Failed</div>
+        <div class="sc fail" id="sc-fail" onclick="filterList('FAIL')" title="Click to show violations">
+          <div class="sn" id="nf">—</div>
+          <div class="sl">❌ Failed</div>
         </div>
-        <div class="stat-card cd">
-          <div class="stat-num" id="cd-count">0</div>
-          <div class="stat-label">Unverified</div>
+        <div class="sc cd" id="sc-cd" onclick="filterList('CANNOT_DETERMINE')" title="Click to show unverified">
+          <div class="sn" id="nc">—</div>
+          <div class="sl">⚠️ Unverified</div>
         </div>
       </div>
-      <div id="overall-badge" style="display:none"></div>
-    </div>
-
-    <div class="filter-tabs" id="filter-tabs" style="display:none">
-      <div class="tab active-all" onclick="filterViolations('all', this)">All</div>
-      <div class="tab" onclick="filterViolations('FAIL', this)">❌ Failed</div>
-      <div class="tab" onclick="filterViolations('PASS', this)">✅ Passed</div>
-      <div class="tab" onclick="filterViolations('CANNOT_DETERMINE', this)">⚠️ Unverified</div>
-    </div>
-
-    <div class="violations-list" id="violations-list">
-      <div style="text-align:center;color:var(--muted);font-size:13px;padding:40px 20px">
-        Run a compliance check to see results
+      <div class="orow">
+        <div id="opill" style="display:none"></div>
+        <button class="allb" id="allb" onclick="filterList('all')" style="display:none">Show all rules</button>
       </div>
     </div>
 
-    <div class="detail-panel" id="detail-panel"></div>
+    <div class="vlist" id="vlist">
+      <div class="emptylist">Run a compliance check to see results</div>
+    </div>
+
+    <!-- Detail Drawer -->
+    <div class="dd" id="dd">
+      <div class="ddi" id="ddi"></div>
+    </div>
 
   </div>
 </div>
 
-<!-- Loading Overlay -->
-<div class="loading-overlay" id="loading">
-  <div class="spinner"></div>
-  <div class="loading-text" id="loading-text">Analyzing packaging artwork...</div>
+<!-- LOADING OVERLAY -->
+<div class="lveil" id="lv">
+  <div class="sring"></div>
+  <div class="lmsg" id="lmsg">Initializing compliance check...</div>
+  <div class="lprog"><div class="lbar" id="lbar"></div></div>
+  <div class="lsteps" id="lsteps"></div>
 </div>
 
-<!-- Toast -->
+<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
 <script>
-  // PDF.js setup
-  pdfjsLib.GlobalWorkerOptions.workerSrc =
-    'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
-  const API_BASE   = 'http://127.0.0.1:8000';
-  let allViolations = [];
-  let selectedItem  = null;
-  let pdfImageData  = null;
+const API='http://127.0.0.1:8000';
+let viols=[],filtered=[],activeIdx=-1,zs=1.5,cW=0,cH=0,ovMode='all',curFilter='all';
 
-  // File input handler
-  document.getElementById('pdf-input').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-      document.getElementById('file-name').textContent = file.name;
-      renderPDF(file);
-    }
+// ── FILE INPUT ──
+document.getElementById('pdf-input').addEventListener('change',e=>{
+  const f=e.target.files[0];if(!f)return;
+  document.getElementById('fn').textContent=f.name;
+  renderPDF(f);
+});
+
+// ── RENDER PDF ──
+async function renderPDF(file,scale){
+  scale=scale||zs;
+  const ab=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument(ab).promise;
+  const pg=await pdf.getPage(1);
+  const vp=pg.getViewport({scale});
+  const canvas=document.getElementById('pcanvas');
+  const svg=document.getElementById('osvg');
+  const ctx=canvas.getContext('2d');
+  canvas.width=vp.width; canvas.height=vp.height;
+  svg.setAttribute('width',vp.width);
+  svg.setAttribute('height',vp.height);
+  svg.setAttribute('viewBox',`0 0 ${vp.width} ${vp.height}`);
+  cW=vp.width; cH=vp.height;
+  await pg.render({canvasContext:ctx,viewport:vp}).promise;
+  document.getElementById('epdf').style.display='none';
+  document.getElementById('pwrap').style.display='block';
+  document.getElementById('zlvl').textContent=Math.round(scale/1.5*100)+'%';
+  if(viols.length) drawOv(ovMode);
+}
+
+// ── ZOOM ──
+function zoom(d){
+  const f=document.getElementById('pdf-input').files[0];if(!f)return;
+  zs=Math.max(.4,Math.min(4,zs+d));renderPDF(f,zs);
+}
+function resetZoom(){
+  const f=document.getElementById('pdf-input').files[0];if(!f)return;
+  zs=1.5;renderPDF(f,zs);
+}
+
+// ── RUN CHECK ──
+async function runCheck(){
+  const file=document.getElementById('pdf-input').files[0];
+  const mkt=document.getElementById('mkt').value;
+  if(!file) return toast('Please select a PDF file','err');
+  if(!mkt)  return toast('Please select a market','err');
+
+  document.getElementById('cbtn').disabled=true;
+  viols=[];filtered=[];activeIdx=-1;
+  closeDetail();
+
+  const steps=[
+    [5,  'Loading regulatory rules from AI Search...'],
+    [20, 'Converting PDF to high-resolution image...'],
+    [40, 'GPT-5.2 Vision analyzing packaging artwork...'],
+    [65, 'Checking each rule against artwork...'],
+    [85, 'Generating compliance report...'],
+  ];
+
+  let si=0;
+  showL(true,steps[0][1],steps[0][0]);
+  const iv=setInterval(()=>{
+    si=Math.min(si+1,steps.length-1);
+    showL(true,steps[si][1],steps[si][0]);
+  },9000);
+
+  const fd=new FormData();
+  fd.append('file',file);
+  fd.append('market',mkt);
+
+  try{
+    const res=await fetch(`${API}/check/artwork`,{method:'POST',body:fd});
+    clearInterval(iv);
+    if(!res.ok){const e=await res.json();throw new Error(e.detail||'Check failed');}
+    const data=await res.json();
+    showL(false);
+    dispResults(data);
+  }catch(e){
+    clearInterval(iv);
+    showL(false);
+    toast(e.message,'err');
+  }finally{
+    document.getElementById('cbtn').disabled=false;
+  }
+}
+
+// ── DISPLAY RESULTS ──
+function dispResults(data){
+  viols=data.violations||[];
+  const pass=data.passed||0;
+  const fail=data.failed||0;
+  const cd=viols.filter(v=>v.status==='CANNOT_DETERMINE').length;
+
+  document.getElementById('np').textContent=pass;
+  document.getElementById('nf').textContent=fail;
+  document.getElementById('nc').textContent=cd;
+
+  const pill=document.getElementById('opill');
+  pill.style.display='block';
+  pill.innerHTML=data.overall_status==='PASS'
+    ?'<span class="opill pass">✅ Overall: PASS</span>'
+    :'<span class="opill fail">❌ Overall: FAIL</span>';
+  document.getElementById('allb').style.display='block';
+
+  // Show legend
+  document.getElementById('legend-bar').classList.add('show');
+
+  // STEP 1 — Show ALL boxes (wow moment!)
+  setOv('all',document.getElementById('ov-all'));
+  filterList('all');
+  updNav();
+
+  toast('🎯 All compliance boxes visible — highlighting violations in 3s...','info');
+
+  // STEP 2 — Auto focus on FAIL after 3 seconds
+  setTimeout(()=>{
+    setOv('fail',document.getElementById('ov-fail'));
+    filterList('FAIL');
+    toast(`Found ${fail} violation${fail!==1?'s':''} — ${pass} rules passed ✅`,'err');
+  },3000);
+
+  const msg=fail>0
+    ?`Found ${fail} violation${fail>1?'s':''} — review required`
+    :'All checks passed ✅';
+}
+
+// ── DRAW OVERLAY (SVG) ──
+function drawOv(mode){
+  const svg=document.getElementById('osvg');
+  svg.innerHTML='';
+  if(mode==='none'||!viols.length) return;
+
+  viols.forEach((v,i)=>{
+    const b=v.bbox;
+    if(!b||(b.width===0&&b.height===0)) return;
+    if(mode==='fail'&&v.status!=='FAIL') return;
+    if(mode==='pass'&&v.status!=='PASS') return;
+    if(mode==='cd'  &&v.status!=='CANNOT_DETERMINE') return;
+
+    const x=(b.x/100)*cW, y=(b.y/100)*cH;
+    const w=(b.width/100)*cW, h=(b.height/100)*cH;
+
+    let stroke,fill;
+    if(v.status==='FAIL')             {stroke='#ff3b5c';fill='rgba(255,59,92,0.09)';}
+    else if(v.status==='PASS')        {stroke='#05d98a';fill='rgba(5,217,138,0.07)';}
+    else                               {stroke='#f5a623';fill='rgba(245,166,35,0.07)';}
+
+    const isAct=activeIdx===i;
+
+    const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+    g.setAttribute('data-idx',i);
+    g.style.cursor='pointer';
+    g.onclick=()=>selViol(i);
+
+    // Main box
+    const rect=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    rect.setAttribute('x',x); rect.setAttribute('y',y);
+    rect.setAttribute('width',w); rect.setAttribute('height',h);
+    rect.setAttribute('fill',fill);
+    rect.setAttribute('stroke',isAct?'#3d7eff':stroke);
+    rect.setAttribute('stroke-width',isAct?3:1.5);
+    if(isAct) rect.setAttribute('stroke-dasharray','6 3');
+    g.appendChild(rect);
+
+    // Label chip
+    const chipW=20, chipH=14;
+    const chipX=x, chipY=Math.max(0,y-chipH);
+    const chip=document.createElementNS('http://www.w3.org/2000/svg','rect');
+    chip.setAttribute('x',chipX); chip.setAttribute('y',chipY);
+    chip.setAttribute('width',chipW); chip.setAttribute('height',chipH);
+    chip.setAttribute('fill',stroke); chip.setAttribute('rx',3);
+    g.appendChild(chip);
+
+    const icon=document.createElementNS('http://www.w3.org/2000/svg','text');
+    icon.setAttribute('x',chipX+chipW/2);
+    icon.setAttribute('y',chipY+chipH*.75);
+    icon.setAttribute('text-anchor','middle');
+    icon.setAttribute('font-size','9');
+    icon.setAttribute('fill','white');
+    icon.setAttribute('font-family','sans-serif');
+    icon.textContent=v.status==='FAIL'?'✕':v.status==='PASS'?'✓':'?';
+    g.appendChild(icon);
+
+    svg.appendChild(g);
+  });
+}
+
+// ── SET OVERLAY MODE ──
+function setOv(mode,btn){
+  ovMode=mode;
+  ['fail','pass','cd','all','none'].forEach(m=>{
+    const b=document.getElementById('ov-'+m);
+    if(b) b.className='ovb';
+  });
+  if(btn){
+    if(mode==='fail')      btn.classList.add('on-fail');
+    else if(mode==='pass') btn.classList.add('on-pass');
+    else if(mode==='cd')   btn.classList.add('on-cd');
+    else if(mode==='all')  btn.classList.add('on-all');
+  }
+  drawOv(mode);
+}
+
+// ── FILTER LIST ──
+function filterList(status){
+  curFilter=status; activeIdx=-1;
+  ['sc-pass','sc-fail','sc-cd'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.className=el.className.replace(/ af| ap| ac/g,'');
   });
 
-  // Render PDF to canvas
-  async function renderPDF(file) {
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf         = await pdfjsLib.getDocument(arrayBuffer).promise;
-    const page        = await pdf.getPage(1);
-
-    const viewport  = page.getViewport({ scale: 1.5 });
-    const canvas    = document.getElementById('pdf-canvas');
-    const overlay   = document.getElementById('overlay-canvas');
-    const ctx       = canvas.getContext('2d');
-
-    canvas.width   = viewport.width;
-    canvas.height  = viewport.height;
-    overlay.width  = viewport.width;
-    overlay.height = viewport.height;
-
-    await page.render({ canvasContext: ctx, viewport }).promise;
-
-    // Save image data for later
-    pdfImageData = { width: viewport.width, height: viewport.height };
-
-    document.getElementById('empty-state').style.display    = 'none';
-    document.getElementById('pdf-container').style.display  = 'block';
-
-    // Overlay click handler
-    overlay.onclick = (e) => handleOverlayClick(e, overlay);
+  if(status==='FAIL'){
+    filtered=viols.filter(v=>v.status==='FAIL');
+    document.getElementById('sc-fail').classList.add('af');
+  } else if(status==='PASS'){
+    filtered=viols.filter(v=>v.status==='PASS');
+    document.getElementById('sc-pass').classList.add('ap');
+  } else if(status==='CANNOT_DETERMINE'){
+    filtered=viols.filter(v=>v.status==='CANNOT_DETERMINE');
+    document.getElementById('sc-cd').classList.add('ac');
+  } else {
+    filtered=[...viols];
   }
 
-  // Run compliance check
-  async function runCheck() {
-    const fileInput = document.getElementById('pdf-input');
-    const market    = document.getElementById('market-select').value;
+  renderList();
+  updNav();
+  closeDetail();
+}
 
-    if (!fileInput.files[0]) return showToast('Please select a PDF file', 'error');
-    if (!market)             return showToast('Please select a market', 'error');
-
-    showLoading(true, 'Extracting text from artwork...');
-    document.getElementById('check-btn').disabled = true;
-
-    const formData = new FormData();
-    formData.append('file', fileInput.files[0]);
-    formData.append('market', market);
-
-    try {
-      // Animate loading messages
-      const messages = [
-        'Extracting text from artwork...',
-        'Loading regulatory rules from AI Search...',
-        'Converting PDF to high-res image...',
-        'GPT Vision analyzing packaging...',
-        'Checking each rule against artwork...',
-        'Generating compliance report...'
-      ];
-      let msgIdx = 0;
-      const msgInterval = setInterval(() => {
-        msgIdx = (msgIdx + 1) % messages.length;
-        document.getElementById('loading-text').textContent = messages[msgIdx];
-      }, 3000);
-
-      const response = await fetch(`${API_BASE}/check/artwork`, {
-        method: 'POST',
-        body:   formData
-      });
-
-      clearInterval(msgInterval);
-
-      if (!response.ok) {
-        const err = await response.json();
-        throw new Error(err.detail || 'Check failed');
-      }
-
-      const data = await response.json();
-      showLoading(false);
-      displayResults(data);
-      showToast(`Check complete — ${data.failed} violations found`, data.failed > 0 ? 'error' : 'success');
-
-    } catch (err) {
-      showLoading(false);
-      showToast(err.message, 'error');
-    } finally {
-      document.getElementById('check-btn').disabled = false;
-    }
+// ── RENDER LIST ──
+function renderList(){
+  const list=document.getElementById('vlist');
+  if(!filtered.length){
+    list.innerHTML='<div class="emptylist">No items in this category</div>';
+    return;
   }
-
-  // Display results
-  function displayResults(data) {
-    allViolations = data.violations || [];
-
-    // Stats
-    const passed = data.passed || 0;
-    const failed = data.failed || 0;
-    const cd     = allViolations.filter(v => v.status === 'CANNOT_DETERMINE').length;
-
-    document.getElementById('pass-count').textContent = passed;
-    document.getElementById('fail-count').textContent = failed;
-    document.getElementById('cd-count').textContent   = cd;
-    document.getElementById('stats-grid').style.display = 'grid';
-    document.getElementById('filter-tabs').style.display = 'flex';
-
-    // Overall badge
-    const badge = document.getElementById('overall-badge');
-    badge.style.display = 'block';
-    badge.innerHTML = data.overall_status === 'PASS'
-      ? '<span class="overall-badge pass">✅ Overall: PASS</span>'
-      : '<span class="overall-badge fail">❌ Overall: FAIL — Critical violations found</span>';
-
-    // Draw overlay boxes
-    drawOverlay(allViolations);
-
-    // Render violations list
-    renderList(allViolations);
-  }
-
-  // Draw colored boxes on PDF
-  function drawOverlay(violations) {
-    if (!pdfImageData) return;
-
-    const overlay = document.getElementById('overlay-canvas');
-    const ctx     = overlay.getContext('2d');
-    const W       = pdfImageData.width;
-    const H       = pdfImageData.height;
-
-    ctx.clearRect(0, 0, W, H);
-
-    violations.forEach((v, idx) => {
-      const bbox = v.bbox;
-      if (!bbox || (bbox.width === 0 && bbox.height === 0)) return;
-
-      const x = (bbox.x / 100) * W;
-      const y = (bbox.y / 100) * H;
-      const w = (bbox.width  / 100) * W;
-      const h = (bbox.height / 100) * H;
-
-      let color, fillColor;
-      if (v.status === 'PASS') {
-        color     = '#00e5a0';
-        fillColor = 'rgba(0,229,160,0.06)';
-      } else if (v.status === 'FAIL') {
-        color     = '#ff4566';
-        fillColor = 'rgba(255,69,102,0.1)';
-      } else {
-        color     = '#ffb830';
-        fillColor = 'rgba(255,184,48,0.06)';
-      }
-
-      // Fill
-      ctx.fillStyle = fillColor;
-      ctx.fillRect(x, y, w, h);
-
-      // Border
-      ctx.strokeStyle = color;
-      ctx.lineWidth   = v.status === 'FAIL' ? 2.5 : 1.5;
-      ctx.strokeRect(x, y, w, h);
-
-      // Label chip
-      const chipText = v.status === 'FAIL' ? '❌' : v.status === 'PASS' ? '✅' : '⚠️';
-      ctx.fillStyle   = color;
-      ctx.font        = '10px DM Mono, monospace';
-      ctx.fillText(chipText, x + 3, y + 13);
-    });
-  }
-
-  // Handle overlay click
-  function handleOverlayClick(e, overlay) {
-    if (!pdfImageData) return;
-
-    const rect = overlay.getBoundingClientRect();
-    const clickX = ((e.clientX - rect.left) / rect.width)  * 100;
-    const clickY = ((e.clientY - rect.top)  / rect.height) * 100;
-
-    // Find which violation was clicked
-    const hit = allViolations.find(v => {
-      const b = v.bbox;
-      if (!b || (b.width === 0 && b.height === 0)) return false;
-      return clickX >= b.x && clickX <= b.x + b.width &&
-             clickY >= b.y && clickY <= b.y + b.height;
-    });
-
-    if (hit) showDetail(hit);
-  }
-
-  // Render violations list
-  function renderList(violations) {
-    const list = document.getElementById('violations-list');
-
-    if (!violations.length) {
-      list.innerHTML = '<div style="text-align:center;color:var(--muted);padding:40px">No violations found</div>';
-      return;
-    }
-
-    list.innerHTML = violations.map((v, idx) => {
-      const cls = v.status === 'PASS' ? 'pass' : v.status === 'FAIL' ? 'fail' : 'cd';
-      const statusLabel = v.status === 'CANNOT_DETERMINE' ? 'UNVERIFIED' : v.status;
-      return `
-        <div class="violation-item ${cls}" onclick="selectViolation(${idx})" id="vi-${idx}">
-          <div class="vi-top">
-            <span class="vi-rule">${v.rule_id || 'N/A'}</span>
-            <span class="vi-status ${cls}">${statusLabel}</span>
+  list.innerHTML=filtered.map(v=>{
+    const gi=viols.indexOf(v);
+    const cls=v.status==='PASS'?'pass':v.status==='FAIL'?'fail':'cd';
+    const badge=v.status==='CANNOT_DETERMINE'?'UNVERIFIED':v.status;
+    const sev=v.severity||'minor';
+    const isAct=gi===activeIdx;
+    const loc=(v.location_hint||'').substring(0,45)+(v.location_hint&&v.location_hint.length>45?'...':'');
+    return `
+      <div class="vi ${cls}${isAct?' active':''}" id="vi-${gi}" onclick="selViol(${gi})">
+        <div class="vitop">
+          <div class="vistr"></div>
+          <div class="vibody">
+            <div class="vihdr">
+              <span class="virule">${v.rule_id||'N/A'}</span>
+              <span class="vibadge ${cls}">${badge}</span>
+            </div>
+            <div class="vifield">${(v.field||'').replace(/_/g,' ')}</div>
+            <div class="vireason">${v.reason||''}</div>
+            <div class="vimeta">
+              <span class="sdot ${sev}"></span>
+              <span>${sev}</span>
+              <span style="color:var(--border2)">·</span>
+              <span style="opacity:.7">${loc}</span>
+            </div>
           </div>
-          <div class="vi-field">${(v.field || '').replace(/_/g,' ')}</div>
-          <div class="vi-reason">${v.reason || ''}</div>
-          <div class="vi-severity">⚡ ${v.severity || 'minor'}</div>
         </div>
-      `;
-    }).join('');
-  }
+      </div>`;
+  }).join('');
+}
 
-  // Select violation
-  function selectViolation(idx) {
-    const v = allViolations[idx];
+// ── SELECT VIOLATION ──
+function selViol(gi){
+  activeIdx=gi;
+  const v=viols[gi];
 
-    // Highlight in list
-    document.querySelectorAll('.violation-item').forEach(el => el.classList.remove('selected'));
-    document.getElementById(`vi-${idx}`)?.classList.add('selected');
+  // Update list highlight
+  document.querySelectorAll('.vi').forEach(el=>el.classList.remove('active'));
+  const el=document.getElementById(`vi-${gi}`);
+  if(el){el.classList.add('active');el.scrollIntoView({behavior:'smooth',block:'nearest'});}
 
-    // Scroll into view
-    document.getElementById(`vi-${idx}`)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  // Show detail + highlight on canvas
+  showDetail(v);
+  drawOv(ovMode);
+  scrollToBox(v);
+  updNavCtr();
+}
 
-    // Show detail
-    showDetail(v);
+// ── SHOW DETAIL ──
+function showDetail(v){
+  const dd=document.getElementById('dd');
+  const ddi=document.getElementById('ddi');
+  const cls=v.status==='PASS'?'pass':v.status==='FAIL'?'fail':'cd';
+  const badge=v.status==='CANNOT_DETERMINE'?'⚠️ UNVERIFIED':v.status==='PASS'?'✅ PASS':'❌ FAIL';
+  const sev=v.severity||'minor';
 
-    // Highlight on canvas
-    highlightBox(v);
-  }
-
-  // Show detail panel
-  function showDetail(v) {
-    const panel = document.getElementById('detail-panel');
-    const cls   = v.status === 'PASS' ? 'pass' : v.status === 'FAIL' ? 'fail' : 'cd';
-    const statusLabel = v.status === 'CANNOT_DETERMINE' ? '⚠️ UNVERIFIED' : v.status === 'PASS' ? '✅ PASS' : '❌ FAIL';
-
-    panel.innerHTML = `
-      <div class="detail-title">
-        <span class="vi-status ${cls}" style="font-size:12px">${statusLabel}</span>
-        <span style="font-family:'Syne',sans-serif">${(v.field || '').replace(/_/g,' ')}</span>
+  ddi.innerHTML=`
+    <div class="ddhdr">
+      <div class="ddtrow">
+        <span class="vibadge ${cls}" style="font-size:11px">${badge}</span>
+        <span class="ddfield">${(v.field||'').replace(/_/g,' ')}</span>
       </div>
-      <div class="detail-row">
-        <div class="detail-key">Rule ID</div>
-        <div class="detail-val" style="font-family:'DM Mono',monospace;color:var(--accent)">${v.rule_id || 'N/A'}</div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-key">Severity</div>
-        <div class="detail-val">${v.severity || 'N/A'}</div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-key">Location</div>
-        <div class="detail-val">${v.location_hint || 'N/A'}</div>
-      </div>
-      <div class="detail-row">
-        <div class="detail-key">Reason</div>
-        <div class="detail-val">${v.reason || 'N/A'}</div>
-      </div>
-      ${v.evidence ? `
-      <div class="evidence-box">${v.evidence}</div>
-      ` : ''}
-    `;
+      <div class="ddclose" onclick="closeDetail()">✕</div>
+    </div>
+    <div class="ddgrid">
+      <div class="dk">Rule ID</div>
+      <div class="dv mono">${v.rule_id||'N/A'}</div>
+      <div class="dk">Severity</div>
+      <div class="dv"><span class="sdot ${sev}" style="margin-right:5px"></span>${sev}</div>
+      <div class="dk">Location</div>
+      <div class="dv">${v.location_hint||'N/A'}</div>
+      <div class="dk">Reason</div>
+      <div class="dv">${v.reason||'N/A'}</div>
+    </div>
+    ${v.evidence?`
+    <div class="evc">
+      <div class="evl">Evidence (Text + Vision)</div>
+      <div class="evt">${v.evidence}</div>
+    </div>`:''}
+  `;
+  dd.classList.add('open');
+}
 
-    panel.classList.add('visible');
+function closeDetail(){
+  document.getElementById('dd').classList.remove('open');
+}
+
+// ── SCROLL TO BOX ──
+function scrollToBox(v){
+  if(!v.bbox||v.bbox.width===0) return;
+  const sc=document.getElementById('pscroll');
+  const y=(v.bbox.y/100)*cH*(zs/1.5);
+  sc.scrollTo({top:Math.max(0,y-120),behavior:'smooth'});
+}
+
+// ── NAVIGATE BOXES ──
+function navBox(d){
+  if(!filtered.length) return;
+  let fi=filtered.indexOf(viols[activeIdx]);
+  if(fi===-1) fi=d>0?-1:filtered.length;
+  fi=(fi+d+filtered.length)%filtered.length;
+  selViol(viols.indexOf(filtered[fi]));
+}
+
+function updNav(){
+  const has=filtered.length>0;
+  document.getElementById('nprev').disabled=!has;
+  document.getElementById('nnext').disabled=!has;
+  const ctr=document.getElementById('navctr');
+  ctr.style.display=has?'block':'none';
+  updNavCtr();
+}
+
+function updNavCtr(){
+  const ctr=document.getElementById('navctr');
+  if(!filtered.length){ctr.textContent='—';return;}
+  const fi=filtered.indexOf(viols[activeIdx]);
+  ctr.textContent=fi>=0?`${fi+1}/${filtered.length}`:`—/${filtered.length}`;
+}
+
+// ── RESIZABLE PANEL ──
+const rz=document.getElementById('rz');
+let isRz=false;
+rz.addEventListener('mousedown',e=>{
+  isRz=true;rz.classList.add('dragging');
+  document.body.style.cursor='col-resize';
+  document.body.style.userSelect='none';
+});
+document.addEventListener('mousemove',e=>{
+  if(!isRz) return;
+  const ws=document.querySelector('.ws').getBoundingClientRect();
+  const fromRight=ws.right-e.clientX;
+  document.getElementById('rpanel').style.width=Math.max(240,Math.min(560,fromRight))+'px';
+});
+document.addEventListener('mouseup',()=>{
+  if(!isRz) return;
+  isRz=false;rz.classList.remove('dragging');
+  document.body.style.cursor='';
+  document.body.style.userSelect='';
+});
+
+// ── LOADING ──
+function showL(show,msg,pct){
+  const v=document.getElementById('lv');
+  if(show){
+    document.getElementById('lmsg').textContent=msg||'Processing...';
+    document.getElementById('lbar').style.width=(pct||0)+'%';
+    v.classList.add('show');
+  } else {
+    document.getElementById('lbar').style.width='100%';
+    setTimeout(()=>v.classList.remove('show'),300);
   }
+}
 
-  // Highlight a specific box
-  function highlightBox(v) {
-    if (!pdfImageData || !v.bbox) return;
-
-    const overlay = document.getElementById('overlay-canvas');
-    const ctx     = overlay.getContext('2d');
-    const W       = pdfImageData.width;
-    const H       = pdfImageData.height;
-
-    // Redraw all
-    drawOverlay(allViolations);
-
-    // Pulse highlight
-    const bbox = v.bbox;
-    const x = (bbox.x / 100) * W;
-    const y = (bbox.y / 100) * H;
-    const w = (bbox.width  / 100) * W;
-    const h = (bbox.height / 100) * H;
-
-    ctx.strokeStyle = '#4f8eff';
-    ctx.lineWidth   = 3;
-    ctx.setLineDash([6, 3]);
-    ctx.strokeRect(x - 2, y - 2, w + 4, h + 4);
-    ctx.setLineDash([]);
-  }
-
-  // Filter violations
-  function filterViolations(status, tabEl) {
-    document.querySelectorAll('.tab').forEach(t => {
-      t.className = 'tab';
-    });
-
-    if (status === 'all') {
-      tabEl.classList.add('active-all');
-      renderList(allViolations);
-    } else if (status === 'PASS') {
-      tabEl.classList.add('active-pass');
-      renderList(allViolations.filter(v => v.status === 'PASS'));
-    } else if (status === 'FAIL') {
-      tabEl.classList.add('active-fail');
-      renderList(allViolations.filter(v => v.status === 'FAIL'));
-    } else {
-      tabEl.classList.add('active-cd');
-      renderList(allViolations.filter(v => v.status === 'CANNOT_DETERMINE'));
-    }
-
-    // Redraw overlay for filtered items
-    const filtered = status === 'all'
-      ? allViolations
-      : allViolations.filter(v =>
-          status === 'CANNOT_DETERMINE' ? v.status === 'CANNOT_DETERMINE' : v.status === status
-        );
-    drawOverlay(filtered);
-  }
-
-  // Loading
-  function showLoading(show, text) {
-    const el = document.getElementById('loading');
-    if (show) {
-      document.getElementById('loading-text').textContent = text || 'Analyzing...';
-      el.classList.add('visible');
-    } else {
-      el.classList.remove('visible');
-    }
-  }
-
-  // Toast
-  function showToast(msg, type) {
-    const toast = document.getElementById('toast');
-    toast.textContent  = msg;
-    toast.className    = `toast ${type} show`;
-    setTimeout(() => toast.classList.remove('show'), 3000);
-  }
+// ── TOAST ──
+function toast(msg,type){
+  const el=document.getElementById('toast');
+  el.textContent=msg;
+  el.className=`toast ${type} show`;
+  setTimeout(()=>el.classList.remove('show'),4000);
+}
 </script>
 </body>
 </html>
-```
